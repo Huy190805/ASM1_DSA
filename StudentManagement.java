@@ -1,9 +1,8 @@
-package Asm_1;
-
+import java.util.Random;
 import java.util.Scanner;
 
 public class StudentManagement {
-    private static Student[] students = new Student[5];
+    private static Student[] students = new Student[100]; // Set array size to 100
     private static int studentCount = 0;
     private static int nextId = 1;
     private static Scanner scanner = new Scanner(System.in);
@@ -20,7 +19,8 @@ public class StudentManagement {
             System.out.println("5. Sort and Display Students by Marks (Descending)");
             System.out.println("6. Search Student by ID");
             System.out.println("7. Search Students by Rank");
-            System.out.println("8. Exit");
+            System.out.println("8. Compare Bubble Sort, Merge Sort, and Quick Sort");
+            System.out.println("9. Exit");
             System.out.print("Enter your choice: ");
             int choice = scanner.nextInt();
 
@@ -47,6 +47,9 @@ public class StudentManagement {
                     searchStudentsByRank();
                     break;
                 case 8:
+                    compareSortingAlgorithms();
+                    break;
+                case 9:
                     System.out.println("Exiting... Goodbye!");
                     return;
                 default:
@@ -56,22 +59,30 @@ public class StudentManagement {
     }
 
     private static void preloadStudents() {
-        students[studentCount++] = new Student(nextId++, "Alice Johnson", 8.5); // Very Good
-        students[studentCount++] = new Student(nextId++, "Bob Smith", 4.8); // Fail
-        students[studentCount++] = new Student(nextId++, "Charlie Brown", 6.0); // Medium
-        students[studentCount++] = new Student(nextId++, "Diana Prince", 9.2); // Excellent
-        students[studentCount++] = new Student(nextId++, "Eve Adams", 7.0); // Good
+        Random rand = new Random();
+        String[] firstNames = {"Alex", "Jamie", "Taylor", "Jordan", "Morgan", "Chris", "Casey", "Riley", "Avery", "Drew"};
+        String[] lastNames = {"Smith", "Johnson", "Brown", "Davis", "Wilson", "Clark", "Lewis", "Walker", "Hall", "Allen"};
 
-        System.out.println("Preloaded students added to the system.");
+        for (int i = 0; i < 10; i++) {
+            int id = nextId++;
+            String name = firstNames[rand.nextInt(firstNames.length)] + " "
+                    + lastNames[rand.nextInt(lastNames.length)];
+            double marks = Math.round((rand.nextDouble() * 10) * 100.0) / 100.0; // Marks between 0 and 10
+
+            students[studentCount++] = new Student(id, name, marks);
+        }
+
+        System.out.println("100 random students preloaded successfully.");
     }
+
 
     private static void addStudent() {
         ensureCapacity();
 
         int id = nextId++;
-        scanner.nextLine();
+        scanner.nextLine();  // Clear the buffer before reading the next line
         System.out.print("Enter Student Name: ");
-        String name = scanner.nextLine();
+        String name = scanner.nextLine(); // Correctly read full name
 
         double marks;
         while (true) {
@@ -147,60 +158,52 @@ public class StudentManagement {
             return;
         }
 
-        Student[] sortedStudents = new Student[studentCount];
-        System.arraycopy(students, 0, sortedStudents, 0, studentCount);
-
-        for (int i = 0; i < studentCount - 1; i++) {
-            for (int j = 0; j < studentCount - i - 1; j++) {
-                if (sortedStudents[j].getMarks() < sortedStudents[j + 1].getMarks()) {
-                    Student temp = sortedStudents[j];
-                    sortedStudents[j] = sortedStudents[j + 1];
-                    sortedStudents[j + 1] = temp;
-                }
-            }
-        }
-
-        System.out.println("\n--- Student List (Sorted by Marks, Descending) ---");
-        for (Student student : sortedStudents) {
-            System.out.println(student);
-        }
+        // Sort and display using Bubble Sort
+        System.out.println("\n--- Sorting Students by Marks (Descending) ---");
+        bubbleSort(students);
+        displayStudents();
     }
 
-    private static void searchStudentById() {
-        System.out.print("Enter Student ID to Search: ");
-        int id = scanner.nextInt();
-        Student student = findStudentById(id);
-        if (student != null) {
-            System.out.println(student);
-        } else {
-            System.out.println("Student not found.");
+    private static void compareSortingAlgorithms() {
+        if (studentCount == 0) {
+            System.out.println("No students to compare sorting algorithms.");
+            return;
         }
+
+        // Bubble Sort
+        Student[] bubbleSorted = new Student[studentCount];
+        System.arraycopy(students, 0, bubbleSorted, 0, studentCount);
+        long bubbleStartTime = System.nanoTime();
+        bubbleSort(bubbleSorted);
+        long bubbleEndTime = System.nanoTime();
+        System.out.println("\n--- Bubble Sort ---");
+        displayStudentArray(bubbleSorted);
+        System.out.println("Bubble Sort Time: " + (bubbleEndTime - bubbleStartTime) + " ns");
+
+        // Merge Sort
+        Student[] mergeSorted = new Student[studentCount];
+        System.arraycopy(students, 0, mergeSorted, 0, studentCount);
+        long mergeStartTime = System.nanoTime();
+        mergeSort(mergeSorted, 0, mergeSorted.length - 1);
+        long mergeEndTime = System.nanoTime();
+        System.out.println("\n--- Merge Sort ---");
+        displayStudentArray(mergeSorted);
+        System.out.println("Merge Sort Time: " + (mergeEndTime - mergeStartTime) + " ns");
+
+        // Quick Sort
+        Student[] quickSorted = new Student[studentCount];
+        System.arraycopy(students, 0, quickSorted, 0, studentCount);
+        long quickStartTime = System.nanoTime();
+        quickSort(quickSorted, 0, quickSorted.length - 1);
+        long quickEndTime = System.nanoTime();
+        System.out.println("\n--- Quick Sort ---");
+        displayStudentArray(quickSorted);
+        System.out.println("Quick Sort Time: " + (quickEndTime - quickStartTime) + " ns");
     }
 
-    private static void searchStudentsByRank() {
-        scanner.nextLine();
-        String rank;
-        while (true) {
-            System.out.print("Enter Rank to Search (Fail, Medium, Good, Very Good, Excellent): ");
-            rank = scanner.nextLine();
-            if (rank.equalsIgnoreCase("Fail") || rank.equalsIgnoreCase("Medium") || rank.equalsIgnoreCase("Good") ||
-                rank.equalsIgnoreCase("Very Good") || rank.equalsIgnoreCase("Excellent")) {
-                break;
-            }
-            System.out.println("Invalid rank. Please re-enter a valid rank.");
-        }
-
-        boolean found = false;
-        System.out.println("\n--- Students with Rank: " + rank + " ---");
-        for (int i = 0; i < studentCount; i++) {
-            if (students[i].getRank().equalsIgnoreCase(rank)) {
-                System.out.println(students[i]);
-                found = true;
-            }
-        }
-
-        if (!found) {
-            System.out.println("No students found with the rank: " + rank);
+    private static void displayStudentArray(Student[] studentsArray) {
+        for (Student student : studentsArray) {
+            System.out.println(student);
         }
     }
 
@@ -218,6 +221,116 @@ public class StudentManagement {
             Student[] newStudents = new Student[students.length * 2];
             System.arraycopy(students, 0, newStudents, 0, students.length);
             students = newStudents;
+        }
+    }
+
+    // Bubble Sort
+    private static void bubbleSort(Student[] arr) {
+        int n = arr.length;
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                if (arr[j].getMarks() < arr[j + 1].getMarks()) {
+                    Student temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                }
+            }
+        }
+    }
+
+    // Merge Sort
+    private static void mergeSort(Student[] arr, int left, int right) {
+        if (left < right) {
+            int mid = (left + right) / 2;
+            mergeSort(arr, left, mid);
+            mergeSort(arr, mid + 1, right);
+            merge(arr, left, mid, right);
+        }
+    }
+
+    private static void merge(Student[] arr, int left, int mid, int right) {
+        int n1 = mid - left + 1;
+        int n2 = right - mid;
+        Student[] leftArr = new Student[n1];
+        Student[] rightArr = new Student[n2];
+
+        System.arraycopy(arr, left, leftArr, 0, n1);
+        System.arraycopy(arr, mid + 1, rightArr, 0, n2);
+
+        int i = 0, j = 0, k = left;
+        while (i < n1 && j < n2) {
+            if (leftArr[i].getMarks() >= rightArr[j].getMarks()) {
+                arr[k] = leftArr[i];
+                i++;
+            } else {
+                arr[k] = rightArr[j];
+                j++;
+            }
+            k++;
+        }
+
+        while (i < n1) {
+            arr[k] = leftArr[i];
+            i++;
+            k++;
+        }
+
+        while (j < n2) {
+            arr[k] = rightArr[j];
+            j++;
+            k++;
+        }
+    }
+
+    // Quick Sort
+    private static void quickSort(Student[] arr, int low, int high) {
+        if (low < high) {
+            int pi = partition(arr, low, high);
+            quickSort(arr, low, pi - 1);
+            quickSort(arr, pi + 1, high);
+        }
+    }
+
+    private static int partition(Student[] arr, int low, int high) {
+        double pivot = arr[high].getMarks();
+        int i = (low - 1);
+
+        for (int j = low; j < high; j++) {
+            if (arr[j].getMarks() >= pivot) {
+                i++;
+                Student temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+        }
+
+        Student temp = arr[i + 1];
+        arr[i + 1] = arr[high];
+        arr[high] = temp;
+
+        return i + 1;
+    }
+
+    private static void searchStudentById() {
+        System.out.print("Enter Student ID to Search: ");
+        int id = scanner.nextInt();
+        Student student = findStudentById(id);
+        if (student != null) {
+            System.out.println(student);
+        } else {
+            System.out.println("Student not found.");
+        }
+    }
+
+    private static void searchStudentsByRank() {
+        scanner.nextLine();  // Clear the buffer before reading the next line
+        System.out.print("Enter Rank to Search (Fail, Medium, Good, Very Good, Excellent): ");
+        String rank = scanner.nextLine(); // Correctly read the rank as a string
+
+        for (int i = 0; i < studentCount; i++) {
+            if (students[i].getRank().equalsIgnoreCase(rank)) {
+                System.out.println(students[i]);
+            }
         }
     }
 }
